@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .cat-pixel { fill: #FF8C42; }
+    .cat-dark { fill: #333333; }
+  </style>
+  
+  <!-- Body -->
+  <rect x="8" y="10" width="16" height="14" class="cat-pixel"/>
+  
+  <!-- Head -->
+  <rect x="6" y="4" width="20" height="10" class="cat-pixel"/>
+  
+  <!-- Left ear -->
+  <rect x="6" y="2" width="4" height="4" class="cat-pixel"/>
+  
+  <!-- Right ear -->
+  <rect x="22" y="2" width="4" height="4" class="cat-pixel"/>
+  
+  <!-- Left ear inner -->
+  <rect x="7" y="2" width="2" height="2" class="cat-dark"/>
+  
+  <!-- Right ear inner -->
+  <rect x="23" y="2" width="2" height="2" class="cat-dark"/>
+  
+  <!-- Left eye -->
+  <rect x="10" y="6" width="2" height="2" class="cat-dark"/>
+  
+  <!-- Right eye -->
+  <rect x="20" y="6" width="2" height="2" class="cat-dark"/>
+  
+  <!-- Nose -->
+  <rect x="15" y="8" width="2" height="2" class="cat-dark"/>
+  
+  <!-- Mouth -->
+  <rect x="14" y="10" width="1" height="1" class="cat-dark"/>
+  <rect x="17" y="10" width="1" height="1" class="cat-dark"/>
+  
+  <!-- Left paw -->
+  <rect x="8" y="24" width="4" height="4" class="cat-pixel"/>
+  
+  <!-- Right paw -->
+  <rect x="20" y="24" width="4" height="4" class="cat-pixel"/>
+  
+  <!-- Tail -->
+  <rect x="26" y="14" width="4" height="4" class="cat-pixel"/>
+</svg>
