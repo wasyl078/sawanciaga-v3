@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 
 interface Props {
   isTyping?: boolean
@@ -10,7 +10,23 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const mouthFrame = ref(0)
+const eyesClosed = ref(false)
 let animationInterval: ReturnType<typeof setInterval> | null = null
+let blinkInterval: ReturnType<typeof setInterval> | null = null
+
+const scheduleNextBlink = () => {
+  if (blinkInterval) clearInterval(blinkInterval)
+  // Random interval between 5-20 seconds
+  const nextBlinkTime = Math.random() * 15000 + 5000
+  blinkInterval = setInterval(() => {
+    eyesClosed.value = true
+    // Close eyes for 300ms
+    setTimeout(() => {
+      eyesClosed.value = false
+      scheduleNextBlink()
+    }, 300)
+  }, nextBlinkTime)
+}
 
 const startAnimation = () => {
   if (animationInterval) return
@@ -39,8 +55,17 @@ watch(
   },
 )
 
+onMounted(() => {
+  scheduleNextBlink()
+})
+
 onUnmounted(() => {
   stopAnimation()
+  if (blinkInterval) clearInterval(blinkInterval)
+})
+
+const eyes = computed(() => {
+  return eyesClosed.value ? '-  -' : '0  0'
 })
 
 const mouth = computed(() => {
@@ -54,7 +79,7 @@ const mouth = computed(() => {
 const catArt = computed(() => {
   return `    /\\__/\\
     /'    '\\
-    === 0  0 ===
+    === ${eyes.value} ===
     \\  ${mouth.value}  /
     /        \\
     /          \\
