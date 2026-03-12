@@ -73,7 +73,7 @@ const mouth = computed(() => {
     return '--'
   }
   // Alternate between '--' and '0'
-  return mouthFrame.value === 0 ? '--' : '0'
+  return mouthFrame.value === 0 ? '--' : 'o'
 })
 
 const catArt = computed(() => {
