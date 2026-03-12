@@ -8,6 +8,11 @@ interface Message {
   isLoading?: boolean
 }
 
+const emit = defineEmits<{
+  'typing-start': []
+  'typing-stop': []
+}>()
+
 const messages = ref<Message[]>([
   {
     id: 1,
@@ -74,6 +79,7 @@ const generateCatResponse = (): string => {
 
 const typeResponse = async (responseText: string): Promise<void> => {
   isTyping.value = true
+  emit('typing-start')
   scrollToBottom()
 
   messageCounter++
@@ -98,11 +104,13 @@ const typeResponse = async (responseText: string): Promise<void> => {
   }
 
   isTyping.value = false
+  emit('typing-stop')
 }
 
 const handleInput = (event: KeyboardEvent) => {
   if (event.key === 'Enter' && inputValue.value.trim() && !isTyping.value) {
     isTyping.value = true
+    emit('typing-start')
     const command = inputValue.value.trim()
 
     // Add user command

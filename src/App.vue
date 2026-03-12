@@ -1,16 +1,27 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import AsciiCat from './components/AsciiCat.vue'
 import Terminal from './components/TerminalWindow.vue'
+
+const isTyping = ref(false)
+
+const handleTypingStart = () => {
+  isTyping.value = true
+}
+
+const handleTypingStop = () => {
+  isTyping.value = false
+}
 </script>
 
 <template>
   <div id="mesh_background"></div>
   <div class="app-layout">
     <div class="content-area">
-      <AsciiCat />
+      <AsciiCat :is-typing="isTyping" />
     </div>
     <div class="terminal-card">
-      <Terminal />
+      <Terminal @typing-start="handleTypingStart" @typing-stop="handleTypingStop" />
     </div>
   </div>
 </template>
