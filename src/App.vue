@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import AsciiCat from './components/AsciiCat.vue'
 import Terminal from './components/TerminalWindow.vue'
 </script>
 
 <template>
   <div id="mesh_background"></div>
   <div class="app-layout">
+    <div class="content-area">
+      <AsciiCat />
+    </div>
     <div class="terminal-card">
       <Terminal />
     </div>
@@ -401,15 +405,25 @@ import Terminal from './components/TerminalWindow.vue'
   width: 100vw;
   height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: row;
   overflow: hidden;
   pointer-events: none;
+  gap: 0;
+  padding: 0;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: auto;
+  overflow: auto;
 }
 
 .terminal-card {
-  width: 90vw;
-  height: 90vh;
+  flex: 1;
   backdrop-filter: blur(10px);
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -417,5 +431,23 @@ import Terminal from './components/TerminalWindow.vue'
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   pointer-events: auto;
   overflow: hidden;
+  margin: 16px;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .content-area {
+    flex: 1;
+    padding: 16px;
+  }
+
+  .terminal-card {
+    flex: 1;
+    margin: 16px;
+  }
 }
 </style>
