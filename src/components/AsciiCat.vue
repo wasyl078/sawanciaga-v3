@@ -5,11 +5,15 @@
 <template>
   <div class="ascii-cat-container">
     <pre class="ascii-cat">
-  /\_/\
- ( o.o )
-  > ^ <
- /|   |\
-(_|   |_)
+    /\__/\
+    /'    '\
+    === 0  0 ===
+    \  --  /
+    /        \
+    /          \
+    |           |
+    \  ||  ||  /
+            \_oo__oo_/#######o
     </pre>
   </div>
 </template>
