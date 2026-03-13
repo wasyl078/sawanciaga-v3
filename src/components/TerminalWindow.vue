@@ -107,6 +107,14 @@ const typeResponse = async (responseText: string): Promise<void> => {
   emit('typing-stop')
 }
 
+const handleInputFocus = () => {
+  // Scroll input into view to avoid mobile keyboard covering it
+  const inputElement = document.querySelector('.terminal-input') as HTMLInputElement
+  if (inputElement) {
+    inputElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+}
+
 const handleInput = (event: KeyboardEvent) => {
   if (event.key === 'Enter' && inputValue.value.trim() && !isTyping.value) {
     isTyping.value = true
@@ -187,6 +195,7 @@ onMounted(() => {
       <input
         v-model="inputValue"
         @keydown="handleInput"
+        @focus="handleInputFocus"
         type="text"
         class="terminal-input"
         placeholder="Type command..."
@@ -221,6 +230,7 @@ onMounted(() => {
     0 8px 16px rgba(0, 0, 0, 0.4);
   border-radius: 12px;
   overflow: hidden;
+  user-select: none;
 }
 
 .messages-container {
@@ -234,6 +244,7 @@ onMounted(() => {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0) transparent;
   transition: scrollbar-color 0.3s ease;
+  overscroll-behavior: contain;
 }
 
 .messages-container:hover {
@@ -263,6 +274,7 @@ onMounted(() => {
   gap: 0;
   word-break: break-word;
   animation: fadeIn 0.2s ease-in-out;
+  touch-action: manipulation;
 }
 
 .prompt {
@@ -286,6 +298,7 @@ onMounted(() => {
   position: sticky;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.1);
+  min-height: 44px;
 }
 
 .terminal-input {
@@ -297,11 +310,19 @@ onMounted(() => {
   font-size: clamp(12px, 1.5vw, 16px);
   outline: none;
   caret-color: #ffffff;
-  transition: opacity 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .terminal-input::placeholder {
   color: #d8d8d8;
+}
+
+.terminal-input:focus {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+  opacity: 1;
 }
 
 .terminal-input:disabled {
@@ -316,11 +337,22 @@ onMounted(() => {
   }
 
   .messages-container {
-    padding: 10px;
+    padding: 12px;
+    gap: 4px;
+    line-height: 1.8;
+  }
+
+  .message {
+    margin: 2px 0;
   }
 
   .input-section {
-    padding: 10px;
+    padding: 12px;
+    min-height: 48px;
+  }
+
+  .prompt {
+    margin-right: 8px;
   }
 }
 
@@ -330,12 +362,48 @@ onMounted(() => {
   }
 
   .messages-container {
+    padding: 10px;
+    gap: 3px;
+    line-height: 1.8;
+  }
+
+  .input-section {
+    padding: 10px;
+    min-height: 44px;
+  }
+
+  .prompt {
+    margin-right: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .terminal {
+    font-size: 11px;
+  }
+
+  .messages-container {
     padding: 8px;
-    gap: 1px;
+    gap: 2px;
+  }
+
+  .message {
+    margin: 1px 0;
+  }
+
+  .prompt {
+    display: none;
   }
 
   .input-section {
     padding: 8px;
+    min-height: 40px;
+    gap: 4px;
+  }
+
+  .message-text {
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 }
 </style>
