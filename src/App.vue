@@ -2,8 +2,11 @@
 import { ref } from 'vue'
 import AsciiCat from './components/AsciiCat.vue'
 import Terminal from './components/TerminalWindow.vue'
+import CommandModal from './components/CommandModal.vue'
 
 const isTyping = ref(false)
+const isCommandModalOpen = ref(false)
+const terminalRef = ref<InstanceType<typeof Terminal> | null>(null)
 
 const handleTypingStart = () => {
   isTyping.value = true
@@ -11,6 +14,21 @@ const handleTypingStart = () => {
 
 const handleTypingStop = () => {
   isTyping.value = false
+}
+
+const handleOpenCommandModal = () => {
+  isCommandModalOpen.value = true
+}
+
+const handleCloseCommandModal = () => {
+  isCommandModalOpen.value = false
+}
+
+const handleSendCommand = (command: string) => {
+  if (terminalRef.value) {
+    terminalRef.value.processCommand(command)
+  }
+  isCommandModalOpen.value = false
 }
 </script>
 
@@ -21,9 +39,20 @@ const handleTypingStop = () => {
       <AsciiCat :is-typing="isTyping" />
     </div>
     <div class="terminal-card">
-      <Terminal @typing-start="handleTypingStart" @typing-stop="handleTypingStop" />
+      <Terminal
+        ref="terminalRef"
+        @typing-start="handleTypingStart"
+        @typing-stop="handleTypingStop"
+        @open-command-modal="handleOpenCommandModal"
+      />
     </div>
   </div>
+  <CommandModal
+    :is-open="isCommandModalOpen"
+    :is-typing="isTyping"
+    @close="handleCloseCommandModal"
+    @send-command="handleSendCommand"
+  />
 </template>
 
 <style scoped>
@@ -459,6 +488,7 @@ const handleTypingStop = () => {
   .terminal-card {
     flex: 1;
     margin: 16px;
+    margin-bottom: 80px;
   }
 }
 </style>

@@ -11,6 +11,7 @@ interface Message {
 const emit = defineEmits<{
   'typing-start': []
   'typing-stop': []
+  'open-command-modal': []
 }>()
 
 const messages = ref<Message[]>([
@@ -24,9 +25,62 @@ const messages = ref<Message[]>([
 const inputValue = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const isTyping = ref(false)
-const isModalOpen = ref(false)
-const modalInputValue = ref('')
 let messageCounter = 1
+
+const processCommand = async (command: string) => {
+  if (command.trim() && !isTyping.value) {
+    isTyping.value = true
+    emit('typing-start')
+
+    // Add user command
+    messageCounter++
+    messages.value.push({
+      id: messageCounter,
+      text: command,
+      isCommand: true,
+    })
+
+    scrollToBottom()
+
+    // Add loading indicator
+    messageCounter++
+    const loadingMessageId = messageCounter
+    messages.value.push({
+      id: loadingMessageId,
+      text: '.',
+      isLoading: true,
+    })
+
+    scrollToBottom()
+
+    // Animate dots: 1 dot, 2 dots, 3 dots cycles
+    let dotCount = 1
+    let cycleCount = 0
+    const dotInterval = setInterval(() => {
+      dotCount++
+      if (dotCount > 3) {
+        dotCount = 1
+        cycleCount++
+      }
+
+      const loadingMsg = messages.value.find((m) => m.id === loadingMessageId)
+      if (loadingMsg) {
+        loadingMsg.text = '.'.repeat(dotCount)
+      }
+
+      // 3 complete cycles (each cycle: 1, 2, 3 dots)
+      if (cycleCount >= 2) {
+        clearInterval(dotInterval)
+        // Remove loading message
+        messages.value = messages.value.filter((m) => m.id !== loadingMessageId)
+
+        // Generate and type response
+        const response = generateCatResponse()
+        typeResponse(response)
+      }
+    }, 200)
+  }
+}
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -117,156 +171,20 @@ const handleInputFocus = () => {
   }
 }
 
-const openModals = () => {
-  isModalOpen.value = true
-  modalInputValue.value = ''
-  // Focus modal input after DOM update
-  nextTick(() => {
-    const modalInput = document.querySelector('.modal-input') as HTMLInputElement
-    if (modalInput) {
-      modalInput.focus()
-    }
-  })
-}
-
-const closeModal = () => {
-  isModalOpen.value = false
-  modalInputValue.value = ''
-}
-
-const handleModalKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && modalInputValue.value.trim() && !isTyping.value) {
-    event.preventDefault()
-    sendCommandFromModal()
-  } else if (event.key === 'Escape') {
-    event.preventDefault()
-    closeModal()
-  }
-}
-
-const handleModalBackdropClick = (event: MouseEvent) => {
-  if (event.target === event.currentTarget) {
-    closeModal()
-  }
-}
-
-const sendCommandFromModal = async () => {
-  if (modalInputValue.value.trim() && !isTyping.value) {
-    const command = modalInputValue.value.trim()
-    closeModal()
-
-    isTyping.value = true
-    emit('typing-start')
-
-    // Add user command
-    messageCounter++
-    messages.value.push({
-      id: messageCounter,
-      text: command,
-      isCommand: true,
-    })
-
-    scrollToBottom()
-
-    // Add loading indicator
-    messageCounter++
-    const loadingMessageId = messageCounter
-    messages.value.push({
-      id: loadingMessageId,
-      text: '.',
-      isLoading: true,
-    })
-
-    scrollToBottom()
-
-    // Animate dots: 1 dot, 2 dots, 3 dots cycles
-    let dotCount = 1
-    let cycleCount = 0
-    const dotInterval = setInterval(() => {
-      dotCount++
-      if (dotCount > 3) {
-        dotCount = 1
-        cycleCount++
-      }
-
-      const loadingMsg = messages.value.find((m) => m.id === loadingMessageId)
-      if (loadingMsg) {
-        loadingMsg.text = '.'.repeat(dotCount)
-      }
-
-      // 3 complete cycles (each cycle: 1, 2, 3 dots)
-      if (cycleCount >= 2) {
-        clearInterval(dotInterval)
-        // Remove loading message
-        messages.value = messages.value.filter((m) => m.id !== loadingMessageId)
-
-        // Generate and type response
-        const response = generateCatResponse()
-        typeResponse(response)
-      }
-    }, 200)
-  }
-}
-
 const handleInput = (event: KeyboardEvent) => {
   if (event.key === 'Enter' && inputValue.value.trim() && !isTyping.value) {
-    isTyping.value = true
-    emit('typing-start')
     const command = inputValue.value.trim()
-
-    // Add user command
-    messageCounter++
-    messages.value.push({
-      id: messageCounter,
-      text: command,
-      isCommand: true,
-    })
-
     inputValue.value = ''
-    scrollToBottom()
-
-    // Add loading indicator
-    messageCounter++
-    const loadingMessageId = messageCounter
-    messages.value.push({
-      id: loadingMessageId,
-      text: '.',
-      isLoading: true,
-    })
-
-    scrollToBottom()
-
-    // Animate dots: 1 dot, 2 dots, 3 dots cycles
-    let dotCount = 1
-    let cycleCount = 0
-    const dotInterval = setInterval(() => {
-      dotCount++
-      if (dotCount > 3) {
-        dotCount = 1
-        cycleCount++
-      }
-
-      const loadingMsg = messages.value.find((m) => m.id === loadingMessageId)
-      if (loadingMsg) {
-        loadingMsg.text = '.'.repeat(dotCount)
-      }
-
-      // 3 complete cycles (each cycle: 1, 2, 3 dots)
-      if (cycleCount >= 2) {
-        clearInterval(dotInterval)
-        // Remove loading message
-        messages.value = messages.value.filter((m) => m.id !== loadingMessageId)
-
-        // Generate and type response
-        const response = generateCatResponse()
-        typeResponse(response)
-      }
-    }, 200) // 200ms per step (1 dot, 2 dots, 3 dots = ~0.6 second per cycle)
+    processCommand(command)
   }
 }
 
 onMounted(() => {
   scrollToBottom()
+})
+
+defineExpose({
+  processCommand,
 })
 </script>
 
@@ -299,35 +217,9 @@ onMounted(() => {
 
     <!-- Mobile button section -->
     <div class="input-section mobile-button-section">
-      <button class="ask-button" @click="openModals" :disabled="isTyping">Ask Sawanka</button>
-    </div>
-
-    <!-- Modal backdrop -->
-    <div v-if="isModalOpen" class="modal-backdrop" @click="handleModalBackdropClick">
-      <!-- Modal window -->
-      <div class="modal-window">
-        <div class="modal-title">Ask Sawanka</div>
-        <input
-          v-model="modalInputValue"
-          @keydown="handleModalKeydown"
-          type="text"
-          class="modal-input"
-          placeholder="Type your command..."
-          :disabled="isTyping"
-        />
-        <div class="modal-buttons">
-          <button class="modal-button modal-button-cancel" @click="closeModal" :disabled="isTyping">
-            Cancel
-          </button>
-          <button
-            class="modal-button modal-button-continue"
-            @click="sendCommandFromModal"
-            :disabled="isTyping || !modalInputValue.trim()"
-          >
-            Continue
-          </button>
-        </div>
-      </div>
+      <button class="ask-button" @click="() => emit('open-command-modal')" :disabled="isTyping">
+        Ask Sawanka
+      </button>
     </div>
   </div>
 </template>
@@ -495,138 +387,6 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* Modal styles */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.modal-window {
-  background: rgba(20, 20, 40, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 300px;
-  width: 90%;
-  box-shadow:
-    0 8px 32px 0 rgba(31, 38, 135, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal-title {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  font-family: 'Courier New', Consolas, monospace;
-}
-
-.modal-input {
-  width: 100%;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-family: 'Courier New', Consolas, monospace;
-  font-size: 14px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  outline: none;
-  caret-color: #ffffff;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.modal-input:focus {
-  background-color: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: inset 0 0 0 2px rgba(100, 200, 255, 0.2);
-}
-
-.modal-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.modal-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-}
-
-.modal-button {
-  flex: 1;
-  padding: 10px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  color: #ffffff;
-  font-family: 'Courier New', Consolas, monospace;
-  font-size: 13px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-}
-
-.modal-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-button-cancel {
-  background-color: rgba(255, 100, 100, 0.1);
-}
-
-.modal-button-cancel:hover:not(:disabled) {
-  background-color: rgba(255, 100, 100, 0.3);
-  border-color: rgba(255, 100, 100, 0.6);
-}
-
-.modal-button-cancel:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.modal-button-continue {
-  background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(150, 100, 255, 0.2));
-  border-color: rgba(100, 200, 255, 0.6);
-}
-
-.modal-button-continue:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(100, 220, 255, 0.4), rgba(150, 120, 255, 0.4));
-  border-color: rgba(100, 200, 255, 0.8);
-  box-shadow: 0 0 15px rgba(100, 200, 255, 0.2);
-}
-
-.modal-button-continue:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
 @media (max-width: 768px) {
   .terminal {
     font-size: clamp(12px, 2vw, 14px);
@@ -721,27 +481,6 @@ onMounted(() => {
     font-size: 12px;
     padding: 8px 16px;
     max-width: 160px;
-  }
-
-  .modal-window {
-    max-width: 250px;
-    padding: 16px;
-  }
-
-  .modal-title {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-
-  .modal-input {
-    padding: 10px;
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-
-  .modal-button {
-    padding: 8px 12px;
-    font-size: 12px;
   }
 
   .message-text {
